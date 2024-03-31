@@ -1,27 +1,16 @@
 #!/bin/bash
 
-MAIN_EXECUTABLE="./main.exe"
-TEST_FOLDER="./lab1_primjeri"
+for test_dir in lab1_primjeri/test*; do
+        test_name=$(basename "$test_dir")
+        input_file="$test_dir/test.a"
+        answer_file="$test_dir/test.b"
 
-for ((i=1; i<=30; i++)); do
-    TEST_DIR="$TEST_FOLDER/test$i"
-    INPUT_FILE="$TEST_DIR/test.a"
-    EXPECTED_OUTPUT_FILE="$TEST_DIR/test.b"
-
-    if [ ! -f "$INPUT_FILE" ]; then
-        continue
-    fi
-
-    OUTPUT=$("$MAIN_EXECUTABLE" < "$INPUT_FILE")
-
-    if [ ! -f "$EXPECTED_OUTPUT_FILE" ]; then
-        continue
-    fi
-
-    EXPECTED_OUTPUT=$(< "$EXPECTED_OUTPUT_FILE")
-    if [ "$OUTPUT" = "$EXPECTED_OUTPUT" ]; then
-        echo "Test $i passed."
-    else
-        echo "Test $i failed."
-    fi
+        output=$(./main < "$input_file")
+        if [[ $output == $(<"$answer_file") ]];
+        then
+                echo "Test $test_name passed."
+        else
+                echo "Test $test_name failed."
+        fi
 done
+

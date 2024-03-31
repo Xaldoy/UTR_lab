@@ -65,6 +65,7 @@ private:
                 }
             }
         }
+	if(result.size() == 0) result.insert("#");
         return result;
     }
 
@@ -73,7 +74,7 @@ private:
         bool printComma = false;
         for (auto& line : result)
         {
-            if (line == "#") continue;
+            if (line == "#" && result.size() != 1) continue;
             if (printComma)
             {
                 std::cout << ",";
