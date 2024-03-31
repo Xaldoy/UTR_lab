@@ -22,10 +22,10 @@ private:
     std::string initialState;
     std::vector<DeltaTransition> deltaTransitions;
 
-    std::set<std::string> findEpsilonEnvironment(std::set<std::string> states)
+    std::set<std::string> findEpsilonEnvironment(const std::set<std::string> &states)
     {
         std::set<std::string> epsilonEnvironment;
-        for (auto& state : states)
+        for (const auto &state : states)
         {
             std::set<std::string> localEpsilonEnv;
             findEpsilonRecursive(state, localEpsilonEnv);
@@ -34,14 +34,14 @@ private:
         return epsilonEnvironment;
     }
 
-    void findEpsilonRecursive(const std::string& state, std::set<std::string>& epsilonEnvironment)
+    void findEpsilonRecursive(const std::string &state, std::set<std::string> &epsilonEnvironment)
     {
         epsilonEnvironment.insert(state);
-        for (const auto& transition : deltaTransitions)
+        for (const auto &transition : deltaTransitions)
         {
             if (transition.fromState == state && transition.input == "$")
             {
-                for (const auto& nextState : transition.toStates)
+                for (const auto &nextState : transition.toStates)
                 {
                     if (epsilonEnvironment.find(nextState) == epsilonEnvironment.end())
                     {
@@ -52,12 +52,12 @@ private:
         }
     }
 
-    std::set<std::string> deltaTransition(std::set<std::string> states, const std::string& input)
+    std::set<std::string> deltaTransition(const std::set<std::string> &states, const std::string &input)
     {
         std::set<std::string> result;
-        for (const auto& state : states)
+        for (const auto &state : states)
         {
-            for (const auto& transition : deltaTransitions)
+            for (const auto &transition : deltaTransitions)
             {
                 if (transition.fromState == state && transition.input == input)
                 {
@@ -65,42 +65,43 @@ private:
                 }
             }
         }
-	if(result.size() == 0) result.insert("#");
+        if (result.empty())
+            result.insert("#");
         return result;
     }
 
-    void printState(std::set<std::string>& result)
+    void printState(std::set<std::string> &result)
     {
         bool printComma = false;
-        for (auto& line : result)
+        for (const auto &line : result)
         {
-            if (line == "#" && result.size() != 1) continue;
+            if (line == "#" && result.size() != 1)
+                continue;
             if (printComma)
-            {
                 std::cout << ",";
-            }
-            else printComma = true;
+            else
+                printComma = true;
             std::cout << line;
         }
     }
 
 public:
     ENKA(
-         const std::set<std::string> &states_,
-         const std::set<std::string> &alphabet_,
-         const std::set<std::string> &acceptableStates_,
-         const std::string &initialState_,
-         const std::vector<DeltaTransition> &deltaTransitions_) :  states(states_), alphabet(alphabet_),
-                                                                  acceptableStates(acceptableStates_), initialState(initialState_),
-                                                                  deltaTransitions(deltaTransitions_)
+        const std::set<std::string> &states_,
+        const std::set<std::string> &alphabet_,
+        const std::set<std::string> &acceptableStates_,
+        const std::string &initialState_,
+        const std::vector<DeltaTransition> &deltaTransitions_) : states(states_), alphabet(alphabet_),
+                                                                 acceptableStates(acceptableStates_), initialState(initialState_),
+                                                                 deltaTransitions(deltaTransitions_)
     {
     }
 
-    void simulate(std::vector<std::string> &inputAlphabet)
+    void simulate(const std::vector<std::string> &inputAlphabet)
     {
-        std::set<std::string> currentStates = findEpsilonEnvironment({ initialState });
+        std::set<std::string> currentStates = findEpsilonEnvironment({initialState});
         printState(currentStates);
-        for (auto& input : inputAlphabet)
+        for (const auto &input : inputAlphabet)
         {
             std::cout << "|";
             std::set<std::string> result = findEpsilonEnvironment(deltaTransition(findEpsilonEnvironment(currentStates), input));
@@ -110,7 +111,7 @@ public:
     }
 };
 
-std::vector<std::string> tokeniseByDelim(std::string input, char delim)
+std::vector<std::string> tokeniseByDelim(const std::string input, char delim)
 {
     std::vector<std::string> result;
     std::stringstream ss(input);
@@ -122,7 +123,7 @@ std::vector<std::string> tokeniseByDelim(std::string input, char delim)
     return result;
 }
 
-DeltaTransition createDeltaTransition(std::string transition)
+DeltaTransition createDeltaTransition(const std::string &transition)
 {
     std::stringstream ss(transition);
     std::string input, fromState, toStatesString;
@@ -134,36 +135,42 @@ DeltaTransition createDeltaTransition(std::string transition)
     std::vector<std::string> temp = tokeniseByDelim(toStatesString.substr(1), ',');
 
     std::set<std::string> toStates;
-   
+
     toStates.insert(temp.begin(), temp.end());
 
     DeltaTransition deltaTransition = DeltaTransition(input, fromState, toStates);
     return deltaTransition;
 }
 
+std::set<std::string> getSetFromInput(const std::string &input)
+{
+    std::vector<std::string> tokenizedVector = tokeniseByDelim(input, ',');
+    std::set<std::string> result;
+    result.insert(tokenizedVector.begin(), tokenizedVector.end());
+    return result;
+}
+
 int main()
 {
     std::vector<std::string> multiInput;
     std::set<std::string> states, alphabet, acceptableStates, transitionFunctions;
-    std::string initialState, input;
-
-    std::vector<std::string> temp;
+    std::string initialState, input, line;
 
     std::getline(std::cin, input);
     multiInput = tokeniseByDelim(input, '|');
+
     std::getline(std::cin, input);
-    temp = tokeniseByDelim(input, ',');
-    states.insert(temp.begin(), temp.end());
+    states = getSetFromInput(input);
+
     std::getline(std::cin, input);
-    temp = tokeniseByDelim(input, ',');
-    alphabet.insert(temp.begin(), temp.end());
+    alphabet = getSetFromInput(input);
+
     std::getline(std::cin, input);
-    temp = tokeniseByDelim(input, ',');
-    acceptableStates.insert(temp.begin(), temp.end());
+    acceptableStates = getSetFromInput(input);
+
     std::getline(std::cin, input);
     initialState = input;
 
-    std::string line;
     while (std::getline(std::cin, line))
     {
         transitionFunctions.insert(line);
@@ -171,14 +178,14 @@ int main()
 
     std::vector<DeltaTransition> deltaTransitions;
 
-    for (auto &transition : transitionFunctions)
+    for (const auto &transition : transitionFunctions)
     {
         deltaTransitions.push_back(createDeltaTransition(transition));
     }
 
     ENKA enka(states, alphabet, acceptableStates, initialState, deltaTransitions);
 
-    for (auto& input : multiInput)
+    for (const auto &input : multiInput)
     {
         std::vector<std::string> tokenizedInput = tokeniseByDelim(input, ',');
         enka.simulate(tokenizedInput);
